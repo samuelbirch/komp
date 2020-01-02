@@ -11,7 +11,7 @@ const app = require("commander")
 let ROOT
 let INROOTFOLDER = false
 try {
-  ROOT = __dirname
+  ROOT = findRoot(process.cwd())
   INROOTFOLDER = true
 } catch (e) {}
 
