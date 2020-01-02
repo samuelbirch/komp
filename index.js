@@ -9,6 +9,7 @@ const findRoot = require("find-root")
 const app = require("commander")
 
 let ROOT
+let ROOT_COMP_FOLDER
 let INROOTFOLDER = false
 try {
   ROOT = findRoot(process.cwd())
@@ -35,6 +36,8 @@ const initConfigFile = () => {
 
 // Create component folder and template files if doesn't exists
 const initComponentFolder = () => {
+  const comp = readConfigFile()
+  ROOT_COMP_FOLDER = ROOT + "/"+comp.basePath+"/comp-templates"
   if (!util.isDir(ROOT_COMP_FOLDER)) {
     fs.mkdirsSync(ROOT_COMP_FOLDER)
     fs.copySync(path.join(__dirname, "comp-templates"), ROOT_COMP_FOLDER)
@@ -48,7 +51,7 @@ const readConfigFile = () => {
 }
 
 // Custom comp-templates folder
-const ROOT_COMP_FOLDER = ROOT + "/comp-templates"
+//const ROOT_COMP_FOLDER = ROOT + "/comp-templates"
 
 // Commander APP
 // ----------------------------------------------------------------------------
