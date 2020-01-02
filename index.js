@@ -15,15 +15,23 @@ try {
   INROOTFOLDER = true
 } catch (e) {}
 
-const initConfigFile = () => {
-  if (!util.isFile(ROOT + "/.komp")) {
-    console.log("Config file [.komp] (hidden) created.")
+let ROOT_COMP_FOLDER = ROOT + "/comp-templates"
+
+try {
+	const comp = readConfigFile()
+	ROOT_COMP_FOLDER = ROOT + "/comp-templates"
+} catch (e) {}
+
+const initConfigFile = (dir, base) => {
+  if (!util.isFile(ROOT + "/"+dir+"/komp.config.json")) {
+    console.log("Config file created.")
     fs.writeFileSync(
-      ROOT + "/.komp",
+		ROOT + "/"+dir+"/komp.config.json",
       JSON.stringify(
         {
           baseName: "component",
-          basePath: "",
+		  basePath: base+"/components/modules",
+		  baseDir: base,
           template: "base"
         },
         null,
@@ -34,7 +42,8 @@ const initConfigFile = () => {
 }
 
 // Create component folder and template files if doesn't exists
-const initComponentFolder = () => {
+const initComponentFolder = (dir) => {
+	ROOT_COMP_FOLDER = ROOT + "/"+dir+ "/comp-templates"
   if (!util.isDir(ROOT_COMP_FOLDER)) {
     fs.mkdirsSync(ROOT_COMP_FOLDER)
     fs.copySync(path.join(__dirname, "comp-templates"), ROOT_COMP_FOLDER)
@@ -44,11 +53,15 @@ const initComponentFolder = () => {
 
 // Read config file
 const readConfigFile = () => {
-  return (config = util.readConfig(ROOT, ".komp"))
+	try {
+  		return (config = util.readConfig(ROOT+"/config", "komp.config.json"))
+	} catch (e) {
+		return (config = util.readConfig(ROOT, "komp.config.json"))
+	}
 }
 
 // Custom comp-templates folder
-const ROOT_COMP_FOLDER = ROOT + "/comp-templates"
+//const ROOT_COMP_FOLDER = ROOT + "/comp-templates"
 
 // Commander APP
 // ----------------------------------------------------------------------------
@@ -61,18 +74,17 @@ app
   .description("Create new boilerplate folder/files")
   .action(function(env) {
     if (INROOTFOLDER) {
+		const comp = readConfigFile()
+		ROOT_COMP_FOLDER = ROOT + "/"+comp.baseDir+"/comp-templates"
+
+		console.log(ROOT_COMP_FOLDER)
       if (!util.isDir(ROOT_COMP_FOLDER)) {
         console.log("Folder comp-templates doesn't exists, use komp init")
         process.exit(0)
       }
 
-      if (!util.isFile(ROOT + "/.komp")) {
-        console.log("Condig file .komp doesn't exists, use komp init")
-        process.exit(0)
-      }
-
       // Read cofig file
-      const comp = readConfigFile()
+      //const comp = readConfigFile()
 
       // Template from user
       if (app.template) comp.template = app.template
@@ -120,13 +132,14 @@ app
   })
 
 app
-  .command("init")
+  .option("-C, --config <name>", "config folder", "config")
+  .command("init <dir>")
   .alias("i")
   .description("Create config file and template folder")
   .action(function(env) {
     if (INROOTFOLDER) {
-      initConfigFile()
-      initComponentFolder()
+      initConfigFile(app.config)
+      initComponentFolder(app.config, env)
     } else {
       console.log("Necesitas estar en una carpeta de proyecto (package.json)")
     }
